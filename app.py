@@ -21,6 +21,24 @@ width:200px;
 
 </style>
 """, unsafe_allow_html=True)
+st.markdown("""
+<style>
+
+.metric-card {
+background-color:#1e222b;
+padding:15px;
+border-radius:10px;
+box-shadow:0px 2px 6px rgba(0,0,0,0.3);
+}
+
+.section-title{
+font-size:22px;
+font-weight:600;
+margin-top:20px;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 
 # ---------------- PAGE CONFIG ----------------
@@ -109,34 +127,72 @@ page = st.sidebar.radio(
 
 if page == "Dashboard":
 
-    st.title("Retail Business Dashboard")
+    st.title("📊 Retail Intelligence Dashboard")
 
-    col1, col2, col3 = st.columns(3)
+    # KPI METRICS
+    total_products = len(df)
+    avg_sales = df['Item_Outlet_Sales'].mean()
+    avg_profit = df['Profit'].mean()
+    avg_price = df['Item_MRP'].mean()
 
-    col1.metric("Total Products", len(df))
-    col2.metric("Average Sales", f"{df['Item_Outlet_Sales'].mean():.0f}")
-    col3.metric("Average Profit %", f"{df['Profit'].mean():.1f}")
+    col1,col2,col3,col4 = st.columns(4)
+
+    with col1:
+        st.metric("Total Products",total_products)
+
+    with col2:
+        st.metric("Avg Sales",f"{avg_sales:.0f}")
+
+    with col3:
+        st.metric("Avg Profit %",f"{avg_profit:.1f}")
+
+    with col4:
+        st.metric("Avg Price",f"₹{avg_price:.0f}")
 
     st.markdown("---")
 
-    sales_by_type = df.groupby("Item_Type")["Item_Outlet_Sales"].mean()
 
-    fig = px.bar(
-        sales_by_type,
-        title="Average Sales by Item Type"
-    )
+    # STEP 4 — ADVANCED ANALYTICS CHARTS
+    col1,col2 = st.columns(2)
 
-    st.plotly_chart(fig, width="stretch")
+    with col1:
 
-    outlet_sales = df.groupby("Outlet_Type")["Item_Outlet_Sales"].mean()
+        sales_by_type = df.groupby("Item_Type")["Item_Outlet_Sales"].mean()
 
-    fig2 = px.pie(
-        values=outlet_sales.values,
-        names=outlet_sales.index,
-        title="Sales by Outlet Type"
-    )
+        fig = px.bar(
+            sales_by_type,
+            title="Top Performing Product Categories",
+            color=sales_by_type.values,
+            color_continuous_scale="viridis"
+        )
 
-    st.plotly_chart(fig2, width="stretch")
+        st.plotly_chart(fig, width="stretch")
+
+
+    with col2:
+
+        outlet_sales = df.groupby("Outlet_Type")["Item_Outlet_Sales"].mean()
+
+        fig2 = px.pie(
+            values=outlet_sales.values,
+            names=outlet_sales.index,
+            title="Sales Distribution by Outlet"
+        )
+
+        st.plotly_chart(fig2, width="stretch")
+
+
+    # STEP 5 — BUSINESS INSIGHTS
+    st.markdown("### 📈 Business Insights")
+
+    best_category = df.groupby("Item_Type")["Item_Outlet_Sales"].mean().idxmax()
+
+    st.success(f"Best performing category: **{best_category}**")
+
+    low_profit = df[df["Profit"] < df["Profit"].mean()].shape[0]
+
+    st.warning(f"{low_profit} products have profit lower than average.")
+
 
 
 # ---------------- DEMAND PREDICTION ----------------
