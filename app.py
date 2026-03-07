@@ -8,6 +8,20 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score, mean_absolute_error
 
+st.markdown("""
+<style>
+
+.stButton>button {
+background-color:#4CAF50;
+color:white;
+border-radius:10px;
+height:45px;
+width:200px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 
 # ---------------- PAGE CONFIG ----------------
 
@@ -83,6 +97,7 @@ page = st.sidebar.radio(
         "Dashboard",
         "Demand Prediction",
         "Demand Forecast",
+        "Price Intelligence",
         "Inventory AI",
         "Price Optimizer",
         "Model Analytics"
@@ -167,33 +182,122 @@ elif page == "Demand Prediction":
 
 # ---------------- DEMAND FORECAST ----------------
 
-elif page == "Demand Forecast":
+elif page == "Price Intelligence":
 
-    st.title("Demand Forecast vs Price")
+    st.title("💹 Price Intelligence")
 
-    prices = np.linspace(50,300,50)
+    st.markdown("Analyze your product price compared to the market and competitors.")
 
-    forecast_df = pd.DataFrame({
+    col1, col2 = st.columns(2)
 
-        "Item_MRP":prices,
-        "Item_Weight":[10]*50,
-        "Item_Visibility":[0.05]*50,
-        "Profit":[12]*50
+    with col1:
 
-    })
+        current_price = st.number_input(
+            "Current Price (₹)",
+            50,
+            500,
+            150
+        )
 
-    predictions = model.predict(forecast_df)
+        sales_volume = st.number_input(
+            "Current Sales Volume",
+            100,
+            10000,
+            1000
+        )
 
-    fig = px.line(
+    with col2:
 
-        x=prices,
-        y=predictions,
-        labels={"x":"Price","y":"Predicted Demand"},
-        title="Demand Forecast vs Price"
+        item_type = st.selectbox(
+            "Select Item Type",
+            df["Item_Type"].unique()
+        )
 
-    )
+        competitor_price = st.number_input(
+            "Competitor Price (₹)",
+            50,
+            500,
+            140
+        )
 
-    st.plotly_chart(fig, width="stretch")
+    if st.button("Analyze Price Trend"):
+
+        type_avg_price = df[
+            df["Item_Type"] == item_type
+        ]["Item_MRP"].mean()
+
+        st.markdown("---")
+
+        c1, c2, c3 = st.columns(3)
+
+        c1.metric(
+            "Market Average",
+            f"₹{type_avg_price:.0f}"
+        )
+
+        diff = current_price - competitor_price
+
+        if diff > 0:
+            c2.metric(
+                "vs Competitor",
+                f"₹{diff:.0f} higher"
+            )
+        else:
+            c2.metric(
+                "vs Competitor",
+                f"₹{abs(diff):.0f} lower"
+            )
+
+        if current_price > type_avg_price * 1.1:
+
+            st.error("⚠ Price too high")
+
+            suggestion = "Lower price by 5-10%"
+
+        elif current_price < type_avg_price * 0.9:
+
+            st.success("Price too low")
+
+            suggestion = "Increase price by 5-10%"
+
+        else:
+
+            st.info("Price optimal")
+
+            suggestion = "Maintain current price"
+
+        st.markdown(
+            f"### 📊 Suggestion: {suggestion}"
+        )
+
+        # Demand simulation
+
+        prices = np.linspace(50,300,50)
+
+        sim_df = pd.DataFrame({
+
+            "Item_MRP":prices,
+            "Item_Weight":[10]*50,
+            "Item_Visibility":[0.05]*50,
+            "Profit":[12]*50
+
+        })
+
+        demand = model.predict(sim_df)
+
+        fig = px.line(
+
+            x=prices,
+            y=demand,
+            labels={
+                "x":"Price",
+                "y":"Predicted Demand"
+            },
+            title="Demand vs Price"
+
+        )
+
+        st.plotly_chart(fig, width="stretch")
 
 
 # ---------------- INVENTORY AI ----------------
