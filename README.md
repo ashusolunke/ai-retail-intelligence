@@ -8,7 +8,7 @@ Built using **Python, Streamlit, and Random Forest Machine Learning**.
 
 # 🚀 Live Demo
 
-👉 https://ai-retail-intelligence.streamlit.app
+👉 https://ai-retail-intelligence-bzjdbmflbgtqe7ocacchvd.streamlit.app/
 
 ---
 
